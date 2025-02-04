@@ -1,0 +1,20 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/*body {
+  min-height: 100dvh;
+  max-width: 100dvw;
+}*/
+
+.content_autocapture {
+  overflow: hidden;
+  position: relative;
+  width: 100dvw;
+  height: 100dvh;
+  background: #fff;
+  display: grid;
+  place-content: center;
+}
