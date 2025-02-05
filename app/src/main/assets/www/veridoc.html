@@ -1,23 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="main.css" rel="stylesheet" type="text/css" />
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="main.css" rel="stylesheet" type="text/css"/>
     <script src="autocapture.min.js" crossorigin type="module"></script>
     <title>Document Autocapture JS</title>
-  </head>
-  <body>
-    <!--Contenedor donde se mostrará el componente de autocaptura-->
-    <div class="content_autocapture">
-      <div id="autocapture_documents"></div>
-    </div>
- 
-  </body>
-  <!-- Script que escucha el evento "message" -->
-  <script type="module">
+</head>
+<body>
+<!--Contenedor donde se mostrará el componente de autocaptura-->
+<div class="content_autocapture">
+    <div id="autocapture_documents"></div>
+</div>
+
+</body>
+<!-- Script que escucha el evento "message" -->
+<script type="module">
     let saveImages = []
-      const contentButtons = document.getElementById("content_buttons");
     // Cuando se recibe un mensaje del componente de autocaptura...
     window.addEventListener("message", function (event) {
       // Se extraen las propiedades "image" y "error" del mensaje
@@ -28,19 +27,22 @@
       if (image) {
           saveImages.push(image)
           
-          console.log(saveImages);
+          console.log(JSON.stringify({ error: null, firstCall: true, image }));
 
           if(saveImages.length === 2){
-            sessionStorage.setItem("imageCaptures", JSON.stringify(saveImages));
+            console.log(JSON.stringify({ error: null, firstCall: false, images: saveImages}));
+            //sessionStorage.setItem("imageCaptures", JSON.stringify(saveImages));
           }
       }
       
       // Si se recibió un error, se muestra un console log con el nombre y mensaje del error
       if (error) {
-        const getError = { name: error.name, message: error.message };
-        console.log(getError);
+        console.log(JSON.stringify({ error: {name: error.name, message: error.message}, firstCall: false, image: null  }));
       }
-      
+
+      /*if(window["continueDetection"] && typeof window["continueDetection"] === "function"){
+        window["continueDetection"]
+      }*/
     });
-  </script>
+</script>
 </html>

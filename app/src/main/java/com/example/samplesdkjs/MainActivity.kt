@@ -3,14 +3,19 @@ package com.example.samplesdkjs
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Button
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.core.app.ActivityCompat
+import org.json.JSONArray
+import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
     private val CAMERA_PERMISSION_REQUEST_CODE = 1
@@ -20,6 +25,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
 
+        val button: Button = findViewById(R.id.btn_capture)
+
         // Configura el WebView para habilitar Javascript
         val webView: WebView = findViewById(R.id.webview)
         val webSettings = webView.settings
@@ -28,13 +35,32 @@ class MainActivity : ComponentActivity() {
         webSettings.allowUniversalAccessFromFileURLs = true
         webSettings.mediaPlaybackRequiresUserGesture = false
 
-        /* webView.evaluateJavascript("""sessionStorage.getItem("imageCapture")"""){
-             result -> println("Imagen desde session storage: $result")
-         }*/
-
         webView.webChromeClient = object : WebChromeClient() {
             override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean {
-                consoleMessage?.let { println("WebView Console: ${it.message()} (Line: ${it.lineNumber()}, Source: ${it.sourceId()})") }
+                consoleMessage?.let {
+                    val message = it.message()
+                    println("WebView Console: $message (Line: ${it.lineNumber()}, Source: ${it.sourceId()})")
+
+                    try {
+                        val jsonParse = JSONObject(message)
+                        val isError = jsonParse.optString("error")
+                        val isFirtsCall: Boolean = jsonParse.optBoolean("firstCall")
+                        val image: String? = jsonParse.optString("image")
+                        val images: JSONArray? = jsonParse.optJSONArray("images")
+
+                        if (isFirtsCall) {
+                            toggleButton(button, true)
+                        } else {
+                            toggleButton(button, false)
+                        }
+
+                        Log.i("Result", "$isError $images $image")
+                    } catch (e: Exception) {
+                        Log.e("Error WebView Console", "${e.message}")
+                    }
+                }
+
+                //toggleButton(button, true)
                 return super.onConsoleMessage(consoleMessage)
             }
 
@@ -64,6 +90,28 @@ class MainActivity : ComponentActivity() {
 
         // Carga el archivo HTML desde los assets
         webView.loadUrl("file:///android_asset/www/veridoc.html")
+
+        button.setOnClickListener {
+            //Toast.makeText(this, "Botón permitido", Toast.LENGTH_SHORT).show()
+            webView.evaluateJavascript("(function() { if(window['continueDetection'] && typeof window['continueDetection'] === 'function') {window['continueDetection'](); return 'Success';} else {return 'Failed'; } })();") { result ->
+                println(result)
+                if (result === "\"Failed\"") {
+                    Toast.makeText(this, "Función no encontrada", Toast.LENGTH_SHORT).show()
+                } else {
+                    toggleButton(button, false)
+                }
+            }
+        }
+
+
+    }
+
+    fun toggleButton(button: Button, show: Boolean) {
+        if (show) {
+            button.visibility = View.VISIBLE
+        } else {
+            button.visibility = View.GONE
+        }
     }
 
     override fun onRequestPermissionsResult(

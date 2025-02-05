@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SampleSdkJs</string>
+    <string name="click_me">Continuar con la captura</string>
+    <string name="skip">Pasar</string>
 </resources>
