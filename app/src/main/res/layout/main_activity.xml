@@ -16,8 +16,10 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:layout_margin="70dp"
-        android:background="@color/purple_500"
+        android:background="@drawable/rounded_button"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
         android:text="@string/click_me"
-        android:textColor="@color/white"
+        android:textColor="#EDEDED"
         android:visibility="gone" /> <!--Oculto inicialmente-->
 </RelativeLayout>

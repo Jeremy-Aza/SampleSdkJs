@@ -1,7 +1,7 @@
 package com.example.samplesdkjs
 
 import android.Manifest
-import android.content.pm.PackageManager
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -13,19 +13,39 @@ import android.webkit.WebViewClient
 import android.widget.Button
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.core.app.ActivityCompat
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import org.json.JSONArray
 import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
-    private val CAMERA_PERMISSION_REQUEST_CODE = 1
-    private var permissionRequest: PermissionRequest? = null
 
+    private var permissionRequest: PermissionRequest? = null
+    private lateinit var requestCameraPermissionLauncher: ActivityResultLauncher<String>
+
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main_activity)
 
         val button: Button = findViewById(R.id.btn_capture)
+
+
+        requestCameraPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+                if (isGranted) {
+                    println("Permiso concedido")
+                    permissionRequest?.grant(permissionRequest?.resources)
+                } else {
+                    println("Permiso denegado")
+                    Toast.makeText(
+                        this, "Se necesita permiso de cámara para continuar", Toast.LENGTH_SHORT
+                    ).show()
+                    permissionRequest?.deny()
+                }
+
+                permissionRequest = null
+            }
 
         // Configura el WebView para habilitar Javascript
         val webView: WebView = findViewById(R.id.webview)
@@ -60,21 +80,14 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                //toggleButton(button, true)
                 return super.onConsoleMessage(consoleMessage)
             }
 
             override fun onPermissionRequest(request: PermissionRequest) {
                 if (request.resources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)) {
                     //Solicitar el permiso de cámara
-                    ActivityCompat.requestPermissions(
-                        this@MainActivity,
-                        arrayOf(Manifest.permission.CAMERA),
-                        CAMERA_PERMISSION_REQUEST_CODE
-                    )
-
-                    //Almacenar la solicitud para concederla más tarde
                     permissionRequest = request
+                    requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }
             }
         }
@@ -111,27 +124,6 @@ class MainActivity : ComponentActivity() {
             button.visibility = View.VISIBLE
         } else {
             button.visibility = View.GONE
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requesCode: Int, permissions: Array<String>, grandResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requesCode, permissions, grandResults)
-
-        if (requesCode === CAMERA_PERMISSION_REQUEST_CODE) {
-            if (grandResults.isNotEmpty() && grandResults[0] === PackageManager.PERMISSION_GRANTED) {
-                println("Permiso concedido")
-                permissionRequest?.grant(permissionRequest?.resources)
-                permissionRequest = null
-            } else {
-                println("Permiso denegado")
-                Toast.makeText(
-                    this, "Se necesita permiso de cámara para continuar", Toast.LENGTH_SHORT
-                ).show()
-                permissionRequest?.deny()
-                permissionRequest = null
-            }
         }
     }
 }
